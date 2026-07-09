@@ -43,6 +43,25 @@ def reverse_geocode_endpoint(lat: float, lon: float):
     return {"address": address}
 
 
+@app.get("/geocode/debug")
+def geocode_debug(lat: float, lon: float):
+    import requests as _requests
+
+    try:
+        response = _requests.get(
+            "https://nominatim.openstreetmap.org/reverse",
+            params={"lat": lat, "lon": lon, "format": "json"},
+            headers={"User-Agent": "local-emergency-service-connect/1.0"},
+            timeout=8,
+        )
+        return {
+            "status_code": response.status_code,
+            "body": response.text[:500],
+        }
+    except Exception as e:
+        return {"error_type": type(e).__name__, "error_message": str(e)}
+
+
 @app.get("/me/client", response_model=schemas.Client)
 def read_current_client(current_client: models.Client = Depends(get_current_client)):
     return current_client
