@@ -1,20 +1,27 @@
 import math
+import os
 from typing import Optional, Tuple
 
 import requests
+from dotenv import load_dotenv
 
-NOMINATIM_SEARCH_URL = "https://nominatim.openstreetmap.org/search"
-NOMINATIM_REVERSE_URL = "https://nominatim.openstreetmap.org/reverse"
+load_dotenv()
+
+LOCATIONIQ_API_KEY = os.getenv("LOCATIONIQ_API_KEY")
+LOCATIONIQ_SEARCH_URL = "https://us1.locationiq.com/v1/search"
+LOCATIONIQ_REVERSE_URL = "https://us1.locationiq.com/v1/reverse"
 EARTH_RADIUS_KM = 6371.0
 
 
 def geocode_address(address_text: str) -> Optional[Tuple[float, float]]:
+    if not LOCATIONIQ_API_KEY:
+        return None
+
     try:
         response = requests.get(
-            NOMINATIM_SEARCH_URL,
-            params={"q": address_text, "format": "json", "limit": 1},
-            headers={"User-Agent": "local-emergency-service-connect/1.0"},
-            timeout=5,
+            LOCATIONIQ_SEARCH_URL,
+            params={"key": LOCATIONIQ_API_KEY, "q": address_text, "format": "json", "limit": 1},
+            timeout=8,
         )
         response.raise_for_status()
         results = response.json()
@@ -31,12 +38,14 @@ def geocode_address(address_text: str) -> Optional[Tuple[float, float]]:
 
 
 def reverse_geocode(latitude: float, longitude: float) -> Optional[str]:
+    if not LOCATIONIQ_API_KEY:
+        return None
+
     try:
         response = requests.get(
-            NOMINATIM_REVERSE_URL,
-            params={"lat": latitude, "lon": longitude, "format": "json"},
-            headers={"User-Agent": "local-emergency-service-connect/1.0"},
-            timeout=5,
+            LOCATIONIQ_REVERSE_URL,
+            params={"key": LOCATIONIQ_API_KEY, "lat": latitude, "lon": longitude, "format": "json"},
+            timeout=8,
         )
         response.raise_for_status()
         result = response.json()
